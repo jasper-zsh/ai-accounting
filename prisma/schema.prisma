@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  credentials Credential[]
+  accounts Account[]
+  categories Category[]
+  transactions Transaction[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Credential {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  type String
+  data String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, type])
+}
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt   DateTime
+}
+
+model Account {
+    id Int @id @default(autoincrement())
+    userId String
+    user User @relation(fields: [userId], references: [id])
+    name String
+    transactions Transaction[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Category {
+    id Int @id @default(autoincrement())
+    userId String
+    user User @relation(fields: [userId], references: [id])
+    name String
+    transactions Transaction[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+    id String @id @default(uuid())
+    userId String
+    user User @relation(fields: [userId], references: [id])
+    categoryId Int?
+    category Category? @relation(fields: [categoryId], references: [id])
+    accountId Int?
+    account Account? @relation(fields: [accountId], references: [id])
+    type String
+    amount Int
+    comment String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
