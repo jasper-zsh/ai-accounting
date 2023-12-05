@@ -1,6 +1,6 @@
 import { PrismaService } from '@/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Account, User } from '@prisma/client';
+import { Account, Prisma, User } from '@prisma/client';
 import { CreateAccountDTO } from './dto/account.dto';
 
 @Injectable()
@@ -30,6 +30,20 @@ export class AccountService {
         id,
         userId: user.id,
       },
+    });
+  }
+
+  async updateAccount(
+    user: User,
+    id: number,
+    input: Prisma.AccountUpdateInput,
+  ) {
+    return await this.prisma.account.update({
+      where: {
+        id,
+        userId: user.id,
+      },
+      data: input,
     });
   }
 }

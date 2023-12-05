@@ -15,3 +15,10 @@ export class TransactionFilterDTO {
   type?: string;
   time?: Prisma.DateTimeFilter;
 }
+
+export class TransactionGroupResult {
+  accountId?: number;
+  categoryId?: number;
+  type?: string;
+  amount: number;
+}

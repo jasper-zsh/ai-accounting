@@ -28,7 +28,7 @@ export class TransactionController {
   @Post('page')
   async paginateTransactions(
     @Request() req,
-    @Body('filters') filters: TransactionFilterDTO,
+    @Body('filter') filters: TransactionFilterDTO,
     @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number,
     @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
   ) {
@@ -38,5 +38,14 @@ export class TransactionController {
       limit,
       page,
     );
+  }
+
+  @Post('group-by')
+  async groupBy(
+    @Request() req,
+    @Body('filter') filter: TransactionFilterDTO,
+    @Body('groupBy') groupBy: ['type' | 'accountId' | 'categoryId'],
+  ) {
+    return await this.transaction.groupBy(req.user, groupBy, filter);
   }
 }

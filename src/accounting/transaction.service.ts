@@ -4,6 +4,7 @@ import { Transaction, User } from '@prisma/client';
 import {
   CreateTransactionDTO,
   TransactionFilterDTO,
+  TransactionGroupResult,
 } from './dto/transaction.dto';
 import { Page } from '@/common/dto/page.dto';
 
@@ -21,7 +22,7 @@ export class TransactionService {
         accountId: dto.accountId,
         categoryId: dto.categoryId,
         type: dto.type,
-        amount: dto.amount * 100,
+        amount: dto.amount,
         comment: dto.comment,
         time: dto.time ?? new Date(),
       },
@@ -30,7 +31,7 @@ export class TransactionService {
 
   async listTransactions(
     user: User,
-    filters: TransactionFilterDTO,
+    filter: TransactionFilterDTO,
     limit: number,
     page: number,
   ): Promise<Page<Transaction>> {
@@ -38,13 +39,13 @@ export class TransactionService {
     res.total = await this.prisma.transaction.count({
       where: {
         userId: user.id,
-        ...filters,
+        ...filter,
       },
     });
     res.data = await this.prisma.transaction.findMany({
       where: {
         userId: user.id,
-        ...filters,
+        ...filter,
       },
       orderBy: {
         time: 'desc',
@@ -53,5 +54,31 @@ export class TransactionService {
       skip: limit * (page - 1),
     });
     return res;
+  }
+
+  async groupBy(
+    user: User,
+    fields: ['type' | 'categoryId' | 'accountId'],
+    filter: TransactionFilterDTO,
+  ): Promise<TransactionGroupResult[]> {
+    const res = await this.prisma.transaction.groupBy({
+      by: fields.length ? fields : ['userId'],
+      where: {
+        userId: user.id,
+        ...filter,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+    return res.map((r) => {
+      const result = new TransactionGroupResult();
+      for (const field of fields) {
+        // @ts-expect-error magic
+        result[field] = r[field];
+      }
+      result.amount = r._sum.amount;
+      return result;
+    });
   }
 }

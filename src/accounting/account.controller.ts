@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   Request,
   UseGuards,
@@ -9,6 +11,7 @@ import {
 import { AccountService } from './account.service';
 import { CreateAccountDTO } from './dto/account.dto';
 import { AuthenticatedGuard } from '@/auth/authenticated.guard';
+import { Prisma } from '@prisma/client';
 
 @UseGuards(AuthenticatedGuard)
 @Controller('accounts')
@@ -23,5 +26,14 @@ export class AccountController {
   @Get()
   async listAccounts(@Request() req) {
     return await this.account.listAccounts(req.user);
+  }
+
+  @Post(':id')
+  async updateAccount(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() input: Prisma.AccountUpdateInput,
+  ) {
+    return await this.account.updateAccount(req.user, id, input);
   }
 }
