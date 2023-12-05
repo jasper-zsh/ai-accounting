@@ -53,6 +53,7 @@ CREATE TABLE "Transaction" (
     "type" TEXT NOT NULL,
     "amount" INTEGER NOT NULL,
     "comment" TEXT,
+    "time" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Transaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
