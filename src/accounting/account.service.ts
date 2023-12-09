@@ -24,8 +24,8 @@ export class AccountService {
     });
   }
 
-  async deleteAccount(user: User, id: number) {
-    await this.prisma.account.delete({
+  async deleteAccount(user: User, id: number): Promise<Account> {
+    return await this.prisma.account.delete({
       where: {
         id,
         userId: user.id,

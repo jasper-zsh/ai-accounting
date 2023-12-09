@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -35,5 +36,10 @@ export class AccountController {
     @Body() input: Prisma.AccountUpdateInput,
   ) {
     return await this.account.updateAccount(req.user, id, input);
+  }
+
+  @Delete(':id')
+  async deleteAccount(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    return await this.account.deleteAccount(req.user, id);
   }
 }

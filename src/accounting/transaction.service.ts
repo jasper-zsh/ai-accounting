@@ -16,15 +16,33 @@ export class TransactionService {
     user: User,
     dto: CreateTransactionDTO,
   ): Promise<Transaction> {
+    const account = dto.accountId
+      ? await this.prisma.account.findFirst({
+          where: {
+            id: dto.accountId,
+          },
+        })
+      : undefined;
+    const category = dto.categoryId
+      ? await this.prisma.category.findFirst({
+          where: {
+            id: dto.categoryId,
+          },
+        })
+      : undefined;
     return await this.prisma.transaction.create({
       data: {
         userId: user.id,
-        accountId: dto.accountId,
-        categoryId: dto.categoryId,
+        accountId: account?.id,
+        categoryId: category?.id,
         type: dto.type,
         amount: dto.amount,
         comment: dto.comment,
         time: dto.time ?? new Date(),
+      },
+      include: {
+        account: true,
+        category: true,
       },
     });
   }
@@ -52,6 +70,18 @@ export class TransactionService {
       },
       take: limit,
       skip: limit * (page - 1),
+      include: {
+        account: {
+          select: {
+            name: true,
+          },
+        },
+        category: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
     return res;
   }
@@ -79,6 +109,15 @@ export class TransactionService {
       }
       result.amount = r._sum.amount;
       return result;
+    });
+  }
+
+  async deleteTransaction(user: User, id: string): Promise<Transaction> {
+    return await this.prisma.transaction.delete({
+      where: {
+        id,
+        userId: user.id,
+      },
     });
   }
 }

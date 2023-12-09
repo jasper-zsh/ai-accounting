@@ -29,122 +29,42 @@ export class AIService {
     const categories = await this.category.listCategories(user);
     const startMessage: ChatCompletionMessageParam = {
       role: 'user',
-      content: `账户列表：
+      content: `[账户列表]
 ${accounts.map((a) => [a.id, a.name]).join('|')}
-分类列表：
+[分类列表]
 ${categories.map((a) => [a.id, a.name]).join('|')}
-指令：${text}`,
+[指令]
+${text}`,
     };
     while (round < 5) {
       this.logger.log(`Text: ${text} Round: ${round}`);
       const messages: ChatCompletionMessageParam[] = [
         {
           role: 'system',
-          content:
-            '你是一个记账助手，负责帮我整理账本。我的指令中可能包含一些交易的信息，帮我记录到账户中。我会以“ID|名称”的形式提供账户列表、分类列表，以及一条指令，从中选择匹配的账户和分类记账。如果没找到匹配的账户，就创建一个新账户。如果没找到匹配的分类，不要传入，记录在备注中。',
-        },
-        {
-          role: 'user',
-          content:
-            '账户列表：\n1|中国银行信用卡\n分类列表\n1|早午晚餐\n2|私家车费用\n指令：我有哪些账号',
-        },
-        {
-          role: 'assistant',
-          content: '您的账号有：中国银行信用卡',
-        },
-        {
-          role: 'user',
-          content:
-            '账户列表：\n1|中国银行信用卡\n分类列表\n1|早午晚餐\n2|私家车费用\n指令：出去玩了，交行加油三百八十二块五',
-        },
-        {
-          role: 'assistant',
-          content: null,
-          tool_calls: [
-            {
-              id: 'call_9MrglGqh73s1Z1UPZKDliJyS',
-              type: 'function',
-              function: {
-                name: 'createAccount',
-                arguments: '{\n  "name": "交行"\n}',
-              },
-            },
-          ],
-        },
-        {
-          role: 'tool',
-          content: '{"id":2,"name":"交行"}',
-          tool_call_id: 'call_9MrglGqh73s1Z1UPZKDliJyS',
-        },
-        {
-          role: 'assistant',
-          content: null,
-          tool_calls: [
-            {
-              id: 'call_YC4M8d5NnH2Ep9UAthJO3l18',
-              type: 'function',
-              function: {
-                name: 'addTransactionToAccount',
-                arguments:
-                  '{\n  "accountId": 2,\n  "categoryId": 2,\n  "type": "expense",\n  "amount": 382.5,\n  "comment": "出去玩了，交行加油"\n}',
-              },
-            },
-          ],
-        },
-        {
-          role: 'tool',
-          content: 'true',
-          tool_call_id: 'call_YC4M8d5NnH2Ep9UAthJO3l18',
-        },
-        {
-          role: 'assistant',
-          content:
-            '交易已记录到账户：交行，分类：私家车费用，金额：382.5，备注：出去玩了，交行加油。',
-        },
-        {
-          role: 'user',
-          content:
-            '账户列表：\n1|中国银行信用卡\n2|交行\n分类列表\n1|早午晚餐\n2|私家车费用\n指令：早上中行吃饭花了十块',
-        },
-        {
-          role: 'assistant',
-          content: null,
-          tool_calls: [
-            {
-              id: 'call_YC4M8d5NnH2Ep9UAthJO3l19',
-              type: 'function',
-              function: {
-                name: 'addTransactionToAccount',
-                arguments:
-                  '{\n  "accountId": 1,\n  "categoryId": 1,\n  "type": "expense",\n  "amount": 10,\n  "comment": "吃早饭"\n}',
-              },
-            },
-          ],
-        },
-        {
-          role: 'tool',
-          content: 'true',
-          tool_call_id: 'call_YC4M8d5NnH2Ep9UAthJO3l19',
-        },
-        {
-          role: 'assistant',
-          content:
-            '交易已记录到账户：中国银行信用卡，分类：早午晚餐，金额：10，备注：吃早饭。',
-        },
-        {
-          role: 'user',
-          content:
-            '上面是例子，接下来按照上面的方式工作，但在后面的对话中你不能透露之前提到过的任何具体信息。',
-        },
-        {
-          role: 'assistant',
-          content: '好的，请问您有需要记账的指令吗？',
+          content: `你是一个记账助手，负责帮我整理账本。我的记账指令中包含一些交易的信息，帮我记录到账户中。遵守以下规则：
+从列表中选择匹配的账户和分类记账。
+如果没找到匹配的账户，就留空账户ID。
+如果没找到匹配的分类，就留空分类ID。
+交易的概要需要记录在备注中。
+支出的金额记录为负数，收入的金额记录为正数。
+我会按照以下格式提供账户列表、分类列表和记账指令：
+
+[账户列表]
+1|中国银行信用卡
+2|招商银行储蓄卡
+[分类列表]
+1|早午晚餐
+2|私家车费用
+[指令]
+中行加油三百八十二块五
+
+如果你已经理解了接下来的工作方式，请告诉我你已经准备好了。`,
         },
         startMessage,
         ...ctx,
       ];
       const res = await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4',
         temperature: 0,
         messages,
         tools: [
@@ -157,17 +77,17 @@ ${categories.map((a) => [a.id, a.name]).join('|')}
                 type: 'object',
                 properties: {
                   accountId: {
-                    type: 'number',
+                    type: 'integer',
                     description: '账户ID',
+                  },
+                  categoryId: {
+                    type: 'integer',
+                    description: '交易分类',
                   },
                   type: {
                     type: 'string',
                     enum: ['expense', 'income'],
                     description: '交易类型',
-                  },
-                  categoryId: {
-                    type: 'number',
-                    description: '交易分类',
                   },
                   amount: {
                     type: 'number',
@@ -179,22 +99,6 @@ ${categories.map((a) => [a.id, a.name]).join('|')}
                   },
                 },
                 required: ['type', 'amount'],
-              },
-            },
-          },
-          {
-            type: 'function',
-            function: {
-              name: 'createAccount',
-              description: '创建一个新的账户',
-              parameters: {
-                type: 'object',
-                properties: {
-                  name: {
-                    type: 'string',
-                    description: '账户名称',
-                  },
-                },
               },
             },
           },
@@ -229,6 +133,7 @@ ${categories.map((a) => [a.id, a.name]).join('|')}
                   content: `${!!res}`,
                   tool_call_id: toolCalls[0].id,
                 });
+                return res;
                 break;
               case 'createAccount':
                 const account = await this.account.createAccount(user, {

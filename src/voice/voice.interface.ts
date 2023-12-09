@@ -3,5 +3,5 @@ export abstract class TextToSpeechInterface {
 }
 
 export abstract class SpeechToTextInterface {
-  abstract speechToText(audio: Buffer): Promise<string>;
+  abstract speechToText(audio: Buffer, prompt?: string): Promise<string>;
 }

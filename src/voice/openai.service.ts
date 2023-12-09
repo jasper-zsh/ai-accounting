@@ -28,13 +28,15 @@ export class OpenAIVoiceService
     });
     return Buffer.from(await res.arrayBuffer());
   }
-  async speechToText(audio: Buffer): Promise<string> {
+  async speechToText(audio: Buffer, prompt?: string): Promise<string> {
     const blob = new Blob([audio]) as any;
     blob.name = 'voice.webm';
     blob.lastModified = 0;
     const res = await this.openai.audio.transcriptions.create({
       model: 'whisper-1',
       file: blob,
+      language: 'zh',
+      prompt,
     });
     this.logger.log(`STT result: ${res.text}`);
     return res.text;

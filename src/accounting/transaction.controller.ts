@@ -8,6 +8,8 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import {
@@ -47,5 +49,10 @@ export class TransactionController {
     @Body('groupBy') groupBy: ['type' | 'accountId' | 'categoryId'],
   ) {
     return await this.transaction.groupBy(req.user, groupBy, filter);
+  }
+
+  @Delete(':id')
+  async deleteTransaction(@Request() req, @Param('id') id: string) {
+    return await this.transaction.deleteTransaction(req.user, id);
   }
 }
