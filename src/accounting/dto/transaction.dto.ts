@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-export class CreateTransactionDTO {
+export interface UpdateTransactionDTO {
   accountId?: number;
   categoryId?: number;
   type: string;
@@ -9,14 +9,14 @@ export class CreateTransactionDTO {
   time?: Date;
 }
 
-export class TransactionFilterDTO {
+export interface TransactionFilterDTO {
   accountId?: number;
   categoryId?: number;
   type?: string;
   time?: Prisma.DateTimeFilter;
 }
 
-export class TransactionGroupResult {
+export interface TransactionGroupResult {
   accountId?: number;
   categoryId?: number;
   type?: string;

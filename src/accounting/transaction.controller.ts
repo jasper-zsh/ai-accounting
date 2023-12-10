@@ -10,10 +10,12 @@ import {
   DefaultValuePipe,
   Delete,
   Param,
+  Get,
+  HttpCode,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import {
-  CreateTransactionDTO,
+  UpdateTransactionDTO,
   TransactionFilterDTO,
 } from './dto/transaction.dto';
 
@@ -23,14 +25,29 @@ export class TransactionController {
   constructor(private transaction: TransactionService) {}
 
   @Post()
-  async createTransaction(@Request() req, @Body() dto: CreateTransactionDTO) {
+  async createTransaction(@Request() req, @Body() dto: UpdateTransactionDTO) {
     return await this.transaction.createTransaction(req.user, dto);
   }
 
-  @Post('page')
+  @Get('data/:id')
+  async getTransaction(@Request() req, @Param('id') id: string) {
+    return await this.transaction.getTransaction(req.user, id);
+  }
+
+  @Post('data/:id')
+  async updateTransaction(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() dto: UpdateTransactionDTO,
+  ) {
+    return await this.transaction.updateTransaction(req.user, id, dto);
+  }
+
+  @Post('query/page')
+  @HttpCode(200)
   async paginateTransactions(
     @Request() req,
-    @Body('filter') filters: TransactionFilterDTO,
+    @Body('filters') filters: TransactionFilterDTO,
     @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number,
     @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
   ) {
@@ -42,16 +59,17 @@ export class TransactionController {
     );
   }
 
-  @Post('group-by')
+  @Post('query/group-by')
+  @HttpCode(200)
   async groupBy(
     @Request() req,
-    @Body('filter') filter: TransactionFilterDTO,
+    @Body('filters') filters: TransactionFilterDTO,
     @Body('groupBy') groupBy: ['type' | 'accountId' | 'categoryId'],
   ) {
-    return await this.transaction.groupBy(req.user, groupBy, filter);
+    return await this.transaction.groupBy(req.user, groupBy, filters);
   }
 
-  @Delete(':id')
+  @Delete('data/:id')
   async deleteTransaction(@Request() req, @Param('id') id: string) {
     return await this.transaction.deleteTransaction(req.user, id);
   }
